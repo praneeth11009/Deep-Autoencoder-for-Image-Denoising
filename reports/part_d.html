@@ -1,0 +1,219 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>part_d</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-04-20"><meta name="DC.source" content="part_d.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">displaying 10 test imgs, ssim, rmse vals</a></li><li><a href="#3">displaying collage of filters in each layer</a></li><li><a href="#4">displaying activations</a></li></ul></div><pre class="codeinput">digitDatasetPath = fullfile(matlabroot,<span class="string">'toolbox'</span>,<span class="string">'nnet'</span>, <span class="keyword">...</span>
+    <span class="string">'nndemos'</span>,<span class="string">'nndatasets'</span>,<span class="string">'DigitDataset'</span>);
+imds = imageDatastore(digitDatasetPath, <span class="keyword">...</span>
+    <span class="string">'IncludeSubfolders'</span>,true, <span class="keyword">...</span>
+    <span class="string">'LabelSource'</span>,<span class="string">'foldernames'</span>);
+
+imds.ReadSize = 500;
+rng(0)
+imds = shuffle(imds);
+[imdsTrain,imdsVal,imdsTest] = splitEachLabel(imds,0.95,0.025);
+dsTestNoisy = transform(imdsTest,@addNoise);
+dsTest = combine(dsTestNoisy,imdsTest);
+dsTest = transform(dsTest,@commonPreprocessing);
+timg_all=read(dsTest);
+load <span class="string">nnet.mat</span>
+ypred = predict(net,dsTest);
+</pre><h2 id="2">displaying 10 test imgs, ssim, rmse vals</h2><pre class="codeinput">trg=52:61;
+ytest=ypred(:,:,:,trg);
+ytest=reshape(ytest,[32,32,10]);
+ycell=num2cell(ytest,[1,2]);
+ycell=reshape(ycell,[10,1]);
+
+timg=timg_all(trg,:);
+minibatch = cat(3,timg(:,2),timg(:,1),ycell);
+figure;
+montage(permute(minibatch,[3 2 1]),<span class="string">'Size'</span>,[10 3])
+title(<span class="string">'original, noisy, denoised'</span>);
+rmse_val = zeros(size(trg));
+ssim_val=zeros(size(trg));
+<span class="keyword">for</span> i=1:10
+    rmse_val(i)=norm(ycell{i}-timg{i,2})/norm(timg{i,2});
+    ssim_val(i)=ssim(ycell{i}, timg{i,2});
+<span class="keyword">end</span>
+
+disp(<span class="string">'rmse : '</span>);
+disp(rmse_val);
+disp(<span class="string">'ssim: '</span>);
+disp(ssim_val);
+</pre><pre class="codeoutput">rmse : 
+  Columns 1 through 7
+
+    0.0973    0.2581    0.0818    0.1039    0.1448    0.0731    0.0830
+
+  Columns 8 through 10
+
+    0.1135    0.1122    0.1436
+
+ssim: 
+  Columns 1 through 7
+
+    0.9858    0.9191    0.9864    0.9910    0.9452    0.9875    0.9792
+
+  Columns 8 through 10
+
+    0.9843    0.9893    0.9766
+
+</pre><img vspace="5" hspace="5" src="part_d_01.png" alt=""> <h2 id="3">displaying collage of filters in each layer</h2><pre class="codeinput">lyrs={<span class="string">'conv1'</span>, <span class="string">'conv2'</span>, <span class="string">'conv3'</span>, <span class="string">'tconv1'</span>, <span class="string">'tconv2'</span>, <span class="string">'tconv3'</span>, <span class="string">'dec_conv1'</span>};
+num_filts=[16,32,64,32,16,8,1];
+
+<span class="keyword">for</span> i = 1:numel(lyrs)
+    I = deepDreamImage(net,lyrs{i},1:num_filts(i),<span class="string">'Verbose'</span>,false,<span class="string">'PyramidLevels'</span>,1);
+    figure;
+    I = imtile(I,<span class="string">'ThumbnailSize'</span>,[64 64]);imshow(I);
+    str=[lyrs{i},<span class="string">' layer filters'</span>];
+    title(str);
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="part_d_02.png" alt=""> <img vspace="5" hspace="5" src="part_d_03.png" alt=""> <img vspace="5" hspace="5" src="part_d_04.png" alt=""> <img vspace="5" hspace="5" src="part_d_05.png" alt=""> <img vspace="5" hspace="5" src="part_d_06.png" alt=""> <img vspace="5" hspace="5" src="part_d_07.png" alt=""> <img vspace="5" hspace="5" src="part_d_08.png" alt=""> <h2 id="4">displaying activations</h2><pre class="codeinput">grid_sz={[4,4], [8,4], [8,8], [8,4], [4,4], [4,2], [1,1] };
+im=timg{4,1};
+<span class="keyword">for</span> i = 1:numel(lyrs)
+    act1 = activations(net,im,lyrs{i});
+    sz = size(act1);
+    <span class="keyword">if</span> (i&lt;numel(lyrs))
+        act1 = reshape(act1,[sz(1) sz(2) 1 sz(3)]);
+    <span class="keyword">end</span>
+    I = imtile(mat2gray(act1),<span class="string">'GridSize'</span>,grid_sz{i},<span class="string">'ThumbnailSize'</span>,[64 64]);
+    figure;
+    imshow(I);
+    str=[lyrs{i},<span class="string">' layer activations'</span>];
+    title(str);
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="part_d_09.png" alt=""> <img vspace="5" hspace="5" src="part_d_10.png" alt=""> <img vspace="5" hspace="5" src="part_d_11.png" alt=""> <img vspace="5" hspace="5" src="part_d_12.png" alt=""> <img vspace="5" hspace="5" src="part_d_13.png" alt=""> <img vspace="5" hspace="5" src="part_d_14.png" alt=""> <img vspace="5" hspace="5" src="part_d_15.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+digitDatasetPath = fullfile(matlabroot,'toolbox','nnet', ...
+    'nndemos','nndatasets','DigitDataset');
+imds = imageDatastore(digitDatasetPath, ...
+    'IncludeSubfolders',true, ...
+    'LabelSource','foldernames');
+
+imds.ReadSize = 500;
+rng(0)
+imds = shuffle(imds);
+[imdsTrain,imdsVal,imdsTest] = splitEachLabel(imds,0.95,0.025);
+dsTestNoisy = transform(imdsTest,@addNoise);
+dsTest = combine(dsTestNoisy,imdsTest);
+dsTest = transform(dsTest,@commonPreprocessing);
+timg_all=read(dsTest);
+load nnet.mat
+ypred = predict(net,dsTest);
+%% displaying 10 test imgs, ssim, rmse vals
+trg=52:61;
+ytest=ypred(:,:,:,trg);
+ytest=reshape(ytest,[32,32,10]);
+ycell=num2cell(ytest,[1,2]);
+ycell=reshape(ycell,[10,1]);
+
+timg=timg_all(trg,:);
+minibatch = cat(3,timg(:,2),timg(:,1),ycell);
+figure;
+montage(permute(minibatch,[3 2 1]),'Size',[10 3])
+title('original, noisy, denoised');
+rmse_val = zeros(size(trg));
+ssim_val=zeros(size(trg));
+for i=1:10
+    rmse_val(i)=norm(ycell{i}-timg{i,2})/norm(timg{i,2});
+    ssim_val(i)=ssim(ycell{i}, timg{i,2});
+end
+
+disp('rmse : ');
+disp(rmse_val);
+disp('ssim: ');
+disp(ssim_val);
+%% displaying collage of filters in each layer
+lyrs={'conv1', 'conv2', 'conv3', 'tconv1', 'tconv2', 'tconv3', 'dec_conv1'};
+num_filts=[16,32,64,32,16,8,1];
+
+for i = 1:numel(lyrs)
+    I = deepDreamImage(net,lyrs{i},1:num_filts(i),'Verbose',false,'PyramidLevels',1);
+    figure;
+    I = imtile(I,'ThumbnailSize',[64 64]);imshow(I);
+    str=[lyrs{i},' layer filters'];
+    title(str);
+end
+
+%% displaying activations
+grid_sz={[4,4], [8,4], [8,8], [8,4], [4,4], [4,2], [1,1] };
+im=timg{4,1};
+for i = 1:numel(lyrs)
+    act1 = activations(net,im,lyrs{i});
+    sz = size(act1);
+    if (i<numel(lyrs))
+        act1 = reshape(act1,[sz(1) sz(2) 1 sz(3)]);
+    end
+    I = imtile(mat2gray(act1),'GridSize',grid_sz{i},'ThumbnailSize',[64 64]);
+    figure;
+    imshow(I);
+    str=[lyrs{i},' layer activations'];
+    title(str);
+end
+
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,53 @@
+b)
+encoder layers:
+	convolution2dLayer 6x6, 16 filters : name 'conv1'
+	reluLayer, 
+    batchNormalizationLayer,
+    maxPooling2dLayer 2x2 stride 2,
+    convolution2dLayer 6x6, 32 filters : name 'conv2'
+	reluLayer, 
+    batchNormalizationLayer,
+    maxPooling2dLayer 2x2 stride 2,
+    convolution2dLayer 6x6, 64 filters : name 'conv3'
+	reluLayer, 
+    batchNormalizationLayer,
+    maxPooling2dLayer 2x2 stride 2
+
+decoding layers:
+	TransponseConvLayer scale up factor 2, 32 filters : name 'tconv1'
+	reluLayer, 
+    batchNormalizationLayer,
+    TransponseConvLayer scale up factor 2, 16 filters : name 'tconv2'
+	reluLayer, 
+    batchNormalizationLayer,
+    TransponseConvLayer scale up factor 2, 8 filters : name 'tconv3'
+	reluLayer, 
+    batchNormalizationLayer,
+    convolution2dLayer 6x6, 1 filter, : name 'dec_conv1' (decoder conv)
+    clippedReluLayer, 
+    batchNormalizationLayer, 
+    regressionLayer
+
+increased number of filters in each layer and got better rmse values. decreased batchsize to improve it further.
+increased number of filters across encoding layers and decreased acrooss decoding layers to improve.
+
+c)
+Images of filters of first layer contain mostly edges and curves since it extracts basic features.
+Images of filters in deeper layers have finer texture compared to those of initial layers. This is because as we go deep into the net 
+more specific features are extracted.
+
+
+d)
+going deep into the network the image becomes unclear and then starting from decoding layers as we go deep the image becomes more legible.
+image is clearest at the start and end layers. the reason given part-c explains this observation also.
+
+
+e)
+denoising poisson noise digit images: the DnCNN network doesn't perform well almost no visible denoising 
+The DnCNN is trained on gaussian noise while the test images have poisson noise ie noise models are
+different whereas our net is trained on poisson noise. So our net out performs DnCNN. 
+
+denoising cameraman.tif: our network doesn't perform well, we can actually see some digit artifacts in the denoised image.
+Our net is trained on digit images whereas the test image is an outdoor scene. So DnCNN outperforms our net.
+
+To sum up difference in noise models, and difference in the train images (eg: outdoor vs digit) cause these differences.
